@@ -1,4 +1,4 @@
-# Testing Guide for MeetSpace
+# Testing Guide for Baithak
 
 This document provides complete instructions for executing backend unit tests, socket integration tests, frontend builds, end-to-end tests with Playwright, and manual cross-device testing with ngrok and TURN relay-only mode.
 

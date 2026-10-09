@@ -41,7 +41,7 @@ export default function Dashboard() {
     setIsCreating(true);
     try {
       const res = await api.post('/meetings', {
-        title: title || 'MeetSpace Meeting',
+        title: title || 'Baithak Meeting',
         password: password ? password : undefined,
         waitingRoomEnabled,
       });
@@ -88,9 +88,9 @@ export default function Dashboard() {
       <header className="border-b border-slate-800 bg-slate-900/50 backdrop-blur px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center font-bold text-white shadow-md shadow-indigo-600/30">
-            M
+            B
           </div>
-          <span className="text-xl font-bold tracking-tight text-white">MeetSpace</span>
+          <span className="text-xl font-bold tracking-tight text-white">Baithak</span>
         </div>
 
         <div className="flex items-center gap-4">

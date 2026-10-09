@@ -23,7 +23,7 @@ async function createMeeting(req, res, next) {
 
     const meeting = await Meeting.create({
       roomId,
-      title: title ? title.trim() : 'MeetSpace Meeting',
+      title: title ? title.trim() : 'Baithak Meeting',
       hostId: req.user.userId,
       passwordHash,
       waitingRoomEnabled: !!waitingRoomEnabled,

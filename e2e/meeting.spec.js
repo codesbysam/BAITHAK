@@ -1,6 +1,6 @@
 const { test, expect } = require('@playwright/test');
 
-test.describe('MeetSpace Multi-User E2E Tests', () => {
+test.describe('Baithak Multi-User E2E Tests', () => {
   test('3 participants join room, exchange media, chat, host mutes guest, and rejoin cleanly', async ({ browser }) => {
     // Context 1: The Host
     const hostContext = await browser.newContext({

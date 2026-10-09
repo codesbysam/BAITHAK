@@ -28,9 +28,9 @@ export default function Home() {
       <header className="border-b border-slate-800/80 bg-slate-900/30 backdrop-blur px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center font-bold text-white shadow-lg shadow-indigo-600/30">
-            M
+            B
           </div>
-          <span className="text-xl font-bold tracking-tight text-white">MeetSpace</span>
+          <span className="text-xl font-bold tracking-tight text-white">Baithak</span>
         </div>
 
         <div className="flex items-center gap-3">
@@ -139,7 +139,7 @@ export default function Home() {
       </main>
 
       <footer className="border-t border-slate-800/80 py-6 text-center text-xs text-slate-500">
-        MeetSpace • Full-Stack WebRTC Video Meeting Platform
+        Baithak • Full-Stack WebRTC Video Meeting Platform
       </footer>
     </div>
   );

@@ -1,6 +1,6 @@
-# MeetSpace Architecture
+# Baithak Architecture
 
-MeetSpace is a production-quality video conferencing system built with the MERN stack (MongoDB, Express, React, Node.js), Redis, and native WebRTC APIs.
+Baithak is a production-quality video conferencing system built with the MERN stack (MongoDB, Express, React, Node.js), Redis, and native WebRTC APIs.
 
 ---
 
@@ -73,7 +73,7 @@ graph TD
 
 ## Mesh Topology vs. SFU
 
-| Characteristic | P2P Mesh (MeetSpace) | Selective Forwarding Unit (SFU) |
+| Characteristic | P2P Mesh (Baithak) | Selective Forwarding Unit (SFU) |
 | :--- | :--- | :--- |
 | **Server Media Processing** | Zero. Media is direct browser-to-browser. | Server receives, caches, and routes all tracks. |
 | **Server Bandwidth** | Negligible (only signaling and JSON). | Very High (bandwidth scales linearly with participants). |

@@ -1,7 +1,7 @@
 {
-  "name": "meetspace-e2e",
+  "name": "baithak-e2e",
   "version": "1.0.0",
-  "description": "End-to-end tests for MeetSpace using Playwright",
+  "description": "End-to-end tests for Baithak using Playwright",
   "scripts": {
     "test": "playwright test",
     "test:headed": "playwright test --headed"

@@ -28,9 +28,9 @@ export default function Login() {
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-2 mb-2">
             <span className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center font-bold text-xl text-white shadow-lg shadow-indigo-500/30">
-              M
+              B
             </span>
-            <span className="text-2xl font-bold tracking-tight text-white">MeetSpace</span>
+            <span className="text-2xl font-bold tracking-tight text-white">Baithak</span>
           </Link>
           <h2 className="text-xl font-semibold text-slate-200 mt-2">Sign in to your account</h2>
           <p className="text-sm text-slate-400 mt-1">

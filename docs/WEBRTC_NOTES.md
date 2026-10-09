@@ -1,13 +1,13 @@
-# WebRTC Architecture & Design Decisions in MeetSpace
+# WebRTC Architecture & Design Decisions in Baithak
 
-This document explains the WebRTC signaling and media architecture used in MeetSpace.
+This document explains the WebRTC signaling and media architecture used in Baithak.
 
 ---
 
 ## 1. Signaling: Perfect Negotiation & Mesh Topology
 
 ### Peer-to-Peer Mesh Overview
-In MeetSpace, media (audio, video, and screen sharing) flows directly between browsers over SRTP (Secure Real-time Transport Protocol). The Node.js server acts strictly as a **signaling server** and never touches or decodes raw media.
+In Baithak, media (audio, video, and screen sharing) flows directly between browsers over SRTP (Secure Real-time Transport Protocol). The Node.js server acts strictly as a **signaling server** and never touches or decodes raw media.
 
 For $N$ participants, each client maintains $N - 1$ bidirectional `RTCPeerConnection` instances.
 Because bandwidth and CPU grow with $O(N^2)$ connections, peer-to-peer mesh is optimized for small groups (capped at **6 participants** via `MAX_PARTICIPANTS`). For larger meetings (e.g. 50+ participants), a Selective Forwarding Unit (SFU) such as mediasoup or LiveKit is required.
@@ -20,7 +20,7 @@ Because bandwidth and CPU grow with $O(N^2)$ connections, peer-to-peer mesh is o
 When two WebRTC peers decide to initiate a connection simultaneously, both generate and send an SDP offer at the same time. This race condition is known as **glare**. Without deterministic arbitration, both peers reject each other's offers or enter an unstable signaling state (`have-local-offer` vs `have-remote-offer`).
 
 ### Our Solution
-MeetSpace employs a deterministic rule: **The newcomer always initiates**.
+Baithak employs a deterministic rule: **The newcomer always initiates**.
 1. When User C joins a room with Users A and B:
    - Server sends `room:joined` to User C containing `participants: [A, B]`.
    - User C creates `RTCPeerConnection` for A and B, adds local tracks, creates SDP offers, and emits `signal:offer { to: A }` and `signal:offer { to: B }`.
@@ -32,7 +32,7 @@ MeetSpace employs a deterministic rule: **The newcomer always initiates**.
 ## 3. ICE Candidate Trickling & Pre-Description Queuing
 
 ### Trickle ICE
-Instead of waiting for all ICE candidates to be gathered before sending the SDP offer (which causes multi-second connection delays), MeetSpace uses **Trickle ICE**. Candidates are streamed via `signal:ice-candidate` the instant they are discovered by `pc.onicecandidate`.
+Instead of waiting for all ICE candidates to be gathered before sending the SDP offer (which causes multi-second connection delays), Baithak uses **Trickle ICE**. Candidates are streamed via `signal:ice-candidate` the instant they are discovered by `pc.onicecandidate`.
 
 ### The Queuing Invariant
 A peer cannot call `pc.addIceCandidate(candidate)` before `pc.setRemoteDescription(...)` has successfully executed. If a candidate arrives early due to network race conditions, calling `addIceCandidate` will throw an `InvalidStateError`.
@@ -63,7 +63,7 @@ As soon as `pc.setRemoteDescription` completes (either for an offer or answer), 
 - Requires authentication to prevent bandwidth abuse.
 
 ### Time-Limited Ephemeral Credentials
-MeetSpace never exposes static passwords. Coturn is configured with `use-auth-secret` and `static-auth-secret`. The backend generates dynamic HMAC-SHA1 tokens with a 1-hour expiration timestamp:
+Baithak never exposes static passwords. Coturn is configured with `use-auth-secret` and `static-auth-secret`. The backend generates dynamic HMAC-SHA1 tokens with a 1-hour expiration timestamp:
 ```javascript
 username = `${timestamp}:${userId}`
 password = HMAC_SHA1(TURN_SECRET, username).toBase64()

@@ -91,7 +91,7 @@ const MeetingStore = {
     const meeting = {
       _id: id,
       roomId: data.roomId.toLowerCase(),
-      title: data.title || 'MeetSpace Meeting',
+      title: data.title || 'Baithak Meeting',
       hostId: data.hostId,
       passwordHash: data.passwordHash || null,
       waitingRoomEnabled: !!data.waitingRoomEnabled,

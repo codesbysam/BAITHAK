@@ -1,6 +1,6 @@
-# MeetSpace
+# Baithak
 
-MeetSpace is an enterprise-grade, multi-user Zoom-style video meeting platform built with the MERN stack, Redis, and native browser WebRTC APIs.
+Baithak is an enterprise-grade, multi-user Zoom-style video meeting platform built with the MERN stack, Redis, and native browser WebRTC APIs.
 
 Media flows directly browser-to-browser over an encrypted peer-to-peer mesh topology. The server never decodes or handles raw audio/video media.
 
@@ -65,8 +65,8 @@ To start the complete system (Client, Server, MongoDB, Redis, and Coturn):
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/meetspace.git
-cd meetspace
+git clone https://github.com/codesbysam/BAITHAK.git
+cd BAITHAK
 
 # Start all services with Docker Compose
 docker-compose up --build
@@ -104,7 +104,7 @@ npm run dev
 | Variable | Description | Default |
 | :--- | :--- | :--- |
 | `PORT` | HTTP & WebSocket server port | `3000` |
-| `MONGO_URI` | MongoDB connection URI | `mongodb://localhost:27017/meetspace` |
+| `MONGO_URI` | MongoDB connection URI | `mongodb://localhost:27017/baithak` |
 | `REDIS_URL` | Redis connection URL | `redis://localhost:6379` |
 | `JWT_SECRET` | 15-minute access token & join token secret | Required |
 | `JWT_REFRESH_SECRET` | 7-day refresh token secret | Required |
@@ -191,7 +191,7 @@ See [`docs/TESTING.md`](docs/TESTING.md) for full instructions, including testin
 ## Known Limits & Future Work
 
 ### Mesh Topology Ceiling
-MeetSpace operates in a **peer-to-peer mesh**. Each client transmits media directly to every other participant ($N-1$ upstream pipelines).
+Baithak operates in a **peer-to-peer mesh**. Each client transmits media directly to every other participant ($N-1$ upstream pipelines).
 - Maximum recommended room capacity is **6 participants** (`MAX_PARTICIPANTS=6`).
 - Beyond 6 participants, client CPU and uplink bandwidth scale quadratically ($O(N^2)$), causing frame degradation on consumer connections.
 

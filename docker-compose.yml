@@ -9,7 +9,7 @@ services:
       - "3000:3000"
     environment:
       - PORT=3000
-      - MONGO_URI=mongodb://mongo:27017/meetspace
+      - MONGO_URI=mongodb://mongo:27017/baithak
       - REDIS_URL=redis://redis:6379
       - JWT_SECRET=supersecretjwtkey
       - JWT_REFRESH_SECRET=supersecretrefreshkey

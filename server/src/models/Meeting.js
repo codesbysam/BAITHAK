@@ -11,7 +11,7 @@ const meetingSchema = new mongoose.Schema(
     },
     title: {
       type: String,
-      default: 'MeetSpace Meeting',
+      default: 'Baithak Meeting',
       trim: true,
     },
     hostId: {
