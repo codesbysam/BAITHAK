@@ -1,0 +1,43 @@
+services:
+  # Baithak Backend (Node.js + Socket.io Signaling)
+  - type: web
+    name: baithak-api
+    env: node
+    rootDir: server
+    buildCommand: npm install
+    startCommand: npm start
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: CORS_ORIGIN
+        sync: false
+      - key: TURN_SECRET
+        value: baithak_turn_secret_prod
+      - key: TURN_URL
+        value: turn:openrelay.metered.ca:80
+      - key: STUN_URL
+        value: stun:stun.l.google.com:19302
+
+  # Baithak Frontend (React 18 + Vite)
+  - type: web
+    name: baithak-web
+    env: static
+    rootDir: client
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        sync: false
+      - key: VITE_SOCKET_URL
+        sync: false
