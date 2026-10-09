@@ -15,9 +15,16 @@ function getIceServers(userId = 'guest') {
   hmac.update(username);
   const password = hmac.digest('base64');
 
+  const stunList = [
+    env.STUN_URL,
+    'stun:stun.l.google.com:19302',
+    'stun:stun1.l.google.com:19302',
+    'stun:stun2.l.google.com:19302',
+  ].filter(Boolean);
+
   const iceServers = [
     {
-      urls: env.STUN_URL,
+      urls: stunList,
     },
     {
       urls: [env.TURN_URL, `${env.TURN_URL}?transport=tcp`],

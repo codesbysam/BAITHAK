@@ -85,12 +85,36 @@ export function usePeerConnections() {
     [joinToken, localStream, addOrUpdatePeer, setPeerStream]
   );
 
+  const mediaRef = useRef({ audio: isAudioEnabled, video: isVideoEnabled });
+  useEffect(() => {
+    mediaRef.current = { audio: isAudioEnabled, video: isVideoEnabled };
+  }, [isAudioEnabled, isVideoEnabled]);
+
+  // Ensure local tracks are attached to all active peer connections
+  useEffect(() => {
+    if (!localStream) return;
+    pcsRef.current.forEach((pc) => {
+      addStreamTracks(pc, localStream);
+    });
+  }, [localStream]);
+
   // Initialize socket listeners and signaling lifecycle
   useEffect(() => {
     if (!roomId || !joinToken) return;
 
     const socket = getSocket(joinToken);
-    if (!socket.connected) {
+
+    const emitJoin = () => {
+      socket.emit('room:join', {
+        roomId,
+        media: mediaRef.current,
+      });
+    };
+
+    if (socket.connected) {
+      emitJoin();
+    } else {
+      socket.on('connect', emitJoin);
       socket.connect();
     }
 
@@ -243,20 +267,19 @@ export function usePeerConnections() {
     });
 
     // Reconnection handling: on socket reconnect, rejoin room
-    socket.on('reconnect', () => {
-      socket.emit('room:join', {
-        roomId,
-        media: { audio: isAudioEnabled, video: isVideoEnabled },
-      });
-    });
+    socket.on('reconnect', emitJoin);
 
     const pcs = pcsRef.current;
 
     return () => {
-      // Cleanup all peer connections
+      // Leave room and cleanup all peer connections
+      socket.emit('room:leave');
+
       pcs.forEach((pc) => closePeerConnection(pc));
       pcs.clear();
 
+      socket.off('connect', emitJoin);
+      socket.off('reconnect', emitJoin);
       socket.off('room:joined');
       socket.off('room:waiting');
       socket.off('room:admitted');
@@ -274,7 +297,6 @@ export function usePeerConnections() {
       socket.off('room:locked');
       socket.off('host:waiting-user');
       socket.off('host:waiting-list');
-      socket.off('reconnect');
     };
   }, [
     roomId,
