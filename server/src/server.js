@@ -12,7 +12,7 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: env.CORS_ORIGIN,
+    origin: (origin, callback) => callback(null, true),
     credentials: true,
   },
 });
@@ -34,7 +34,7 @@ async function start() {
     console.warn('Redis init notice:', err.message);
   }
 
-  server.listen(PORT, () => {
+  server.listen(PORT, '0.0.0.0', () => {
     console.log(`Server listening on port ${PORT}`);
   });
 }
