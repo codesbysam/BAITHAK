@@ -38,6 +38,6 @@ services:
         destination: /index.html
     envVars:
       - key: VITE_API_URL
-        value: https://baithak-api-lvzs.onrender.com/api/v1
+        value: https://baithak-api-1vzs.onrender.com/api/v1
       - key: VITE_SOCKET_URL
-        value: https://baithak-api-lvzs.onrender.com
+        value: https://baithak-api-1vzs.onrender.com

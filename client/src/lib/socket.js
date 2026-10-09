@@ -1,6 +1,6 @@
 import { io } from 'socket.io-client';
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'https://baithak-api-lvzs.onrender.com';
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'https://baithak-api-1vzs.onrender.com';
 
 let socketInstance = null;
 
