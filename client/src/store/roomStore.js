@@ -105,8 +105,7 @@ export const useRoomStore = create((set, get) => ({
 
   setPeerStream: (socketId, stream) => {
     set((state) => {
-      const existing = state.peers[socketId];
-      if (!existing) return state;
+      const existing = state.peers[socketId] || { socketId };
       return {
         peers: {
           ...state.peers,

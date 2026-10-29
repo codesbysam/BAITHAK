@@ -20,6 +20,13 @@ export default function VideoTile({
       if (videoRef.current.srcObject !== stream) {
         videoRef.current.srcObject = stream;
       }
+      const playPromise = videoRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((err) => {
+          // Autoplay policy: will resume on user interaction
+          console.warn('Video playback notice:', err?.message || err);
+        });
+      }
     }
   }, [stream]);
 

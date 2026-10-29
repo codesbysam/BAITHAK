@@ -33,6 +33,11 @@ export function usePeerConnections() {
   const pcsRef = useRef(new Map()); // socketId -> RTCPeerConnection
   const iceServersRef = useRef([]);
 
+  const localStreamRef = useRef(localStream);
+  useEffect(() => {
+    localStreamRef.current = localStream;
+  }, [localStream]);
+
   // Create an RTCPeerConnection for a specific remote peer
   const getOrCreatePeerConnection = useCallback(
     (peerSocketId, peerData = {}) => {
@@ -70,8 +75,8 @@ export function usePeerConnections() {
       });
 
       // Attach current local media tracks to the peer connection
-      if (localStream) {
-        addStreamTracks(pc, localStream);
+      if (localStreamRef.current) {
+        addStreamTracks(pc, localStreamRef.current);
       }
 
       pcsRef.current.set(peerSocketId, pc);
@@ -82,7 +87,7 @@ export function usePeerConnections() {
 
       return pc;
     },
-    [joinToken, localStream, addOrUpdatePeer, setPeerStream]
+    [joinToken, addOrUpdatePeer, setPeerStream]
   );
 
   const mediaRef = useRef({ audio: isAudioEnabled, video: isVideoEnabled });
@@ -298,22 +303,8 @@ export function usePeerConnections() {
       socket.off('host:waiting-user');
       socket.off('host:waiting-list');
     };
-  }, [
-    roomId,
-    joinToken,
-    getOrCreatePeerConnection,
-    addOrUpdatePeer,
-    removePeer,
-    setSelfSocketId,
-    setIsHost,
-    setIsWaiting,
-    setIsLocked,
-    setWaitingUsers,
-    addMessage,
-    toggleAudio,
-    isAudioEnabled,
-    isVideoEnabled,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roomId, joinToken]);
 
   const replaceVideoTrackAllPeers = useCallback(async (newTrack) => {
     const promises = [];
