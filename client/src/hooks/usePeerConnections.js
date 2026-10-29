@@ -31,6 +31,7 @@ export function usePeerConnections() {
   } = useRoomStore();
 
   const pcsRef = useRef(new Map()); // socketId -> RTCPeerConnection
+  const earlyCandidatesRef = useRef(new Map()); // socketId -> RTCIceCandidate[]
   const iceServersRef = useRef([]);
 
   const localStreamRef = useRef(localStream);
@@ -81,6 +82,13 @@ export function usePeerConnections() {
 
       pcsRef.current.set(peerSocketId, pc);
 
+      // Drain any candidates that arrived before this RTCPeerConnection was created
+      const earlyCandidates = earlyCandidatesRef.current.get(peerSocketId);
+      if (earlyCandidates && earlyCandidates.length > 0) {
+        earlyCandidates.forEach((c) => addOrQueueIceCandidate(pc, c));
+        earlyCandidatesRef.current.delete(peerSocketId);
+      }
+
       if (peerData.name || peerData.userId) {
         addOrUpdatePeer(peerSocketId, peerData);
       }
@@ -129,8 +137,18 @@ export function usePeerConnections() {
       setIsHost(!!data.isHost);
       setIsWaiting(false);
 
-      if (data.iceServers) {
+      if (data.iceServers && Array.isArray(data.iceServers)) {
         iceServersRef.current = data.iceServers;
+        pcsRef.current.forEach((pc) => {
+          try {
+            if (pc && pc.setConfiguration) {
+              pc.setConfiguration({
+                iceServers: data.iceServers,
+                iceTransportPolicy: 'all',
+              });
+            }
+          } catch (_) {}
+        });
       }
 
       // RULE: The newcomer initiates offers to all existing participants to prevent glare
@@ -232,6 +250,11 @@ export function usePeerConnections() {
       const pc = pcsRef.current.get(from);
       if (pc) {
         await addOrQueueIceCandidate(pc, candidate);
+      } else {
+        if (!earlyCandidatesRef.current.has(from)) {
+          earlyCandidatesRef.current.set(from, []);
+        }
+        earlyCandidatesRef.current.get(from).push(candidate);
       }
     });
 

@@ -47,17 +47,24 @@ export function createPeerConnection(peerId, iceServers = DEFAULT_ICE_SERVERS, h
     }
   };
 
-  pc.oniceconnectionstatechange = () => {
-    const state = pc.iceConnectionState;
+  const handleStateChange = () => {
+    const iceState = pc.iceConnectionState;
+    const connState = pc.connectionState;
+    // Prefer overall connectionState when valid, else fallback to iceConnectionState
+    const state = connState && connState !== 'new' ? connState : iceState;
+
     if (onConnectionStateChange) {
       onConnectionStateChange(peerId, state);
     }
 
     // Trigger ICE restart if connection has failed
-    if (state === 'failed' && onIceRestartNeeded) {
+    if ((iceState === 'failed' || connState === 'failed') && onIceRestartNeeded) {
       onIceRestartNeeded(peerId, pc);
     }
   };
+
+  pc.oniceconnectionstatechange = handleStateChange;
+  pc.onconnectionstatechange = handleStateChange;
 
   return pc;
 }

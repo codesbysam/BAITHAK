@@ -1,6 +1,6 @@
 const { MeetingStore: Meeting } = require('../models/storeAdapter');
 const roomService = require('../services/roomService');
-const { getIceServers } = require('../services/turnService');
+const { getIceServers, getIceServersAsync } = require('../services/turnService');
 
 // Simple rate limiter for room:join per socket to prevent spamming
 const joinAttempts = new Map();
@@ -158,7 +158,7 @@ async function admitParticipantToRoom(io, socket, roomId, participantData) {
   }
 
   const newParticipant = await roomService.addParticipant(roomId, socket.id, participantData);
-  const iceServers = getIceServers(participantData.userId);
+  const iceServers = await getIceServersAsync(participantData.userId);
 
   // Send room:joined event to the newcomer
   socket.emit('room:joined', {

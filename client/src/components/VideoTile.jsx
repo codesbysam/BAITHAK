@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import ConnectionBadge from './ConnectionBadge';
 
 export default function VideoTile({
@@ -14,21 +14,50 @@ export default function VideoTile({
   pc = null,
 }) {
   const videoRef = useRef(null);
+  const [isAutoplayBlocked, setIsAutoplayBlocked] = useState(false);
 
   useEffect(() => {
-    if (videoRef.current && stream) {
-      if (videoRef.current.srcObject !== stream) {
-        videoRef.current.srcObject = stream;
-      }
-      const playPromise = videoRef.current.play();
-      if (playPromise !== undefined) {
-        playPromise.catch((err) => {
-          // Autoplay policy: will resume on user interaction
-          console.warn('Video playback notice:', err?.message || err);
-        });
-      }
+    const video = videoRef.current;
+    if (!video || !stream) return;
+
+    if (video.srcObject !== stream) {
+      video.srcObject = stream;
     }
+
+    const tryPlay = () => {
+      const playPromise = video.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => setIsAutoplayBlocked(false))
+          .catch((err) => {
+            if (err?.name === 'NotAllowedError') {
+              setIsAutoplayBlocked(true);
+            }
+            console.warn('Video playback notice:', err?.message || err);
+          });
+      }
+    };
+
+    tryPlay();
+
+    const handleTrackAdded = () => tryPlay();
+    stream.addEventListener('addtrack', handleTrackAdded);
+    stream.addEventListener('removetrack', handleTrackAdded);
+
+    return () => {
+      stream.removeEventListener('addtrack', handleTrackAdded);
+      stream.removeEventListener('removetrack', handleTrackAdded);
+    };
   }, [stream]);
+
+  const handleUnblockAutoplay = () => {
+    if (videoRef.current) {
+      videoRef.current
+        .play()
+        .then(() => setIsAutoplayBlocked(false))
+        .catch(console.error);
+    }
+  };
 
   const isReconnecting = connectionState === 'disconnected' || connectionState === 'failed';
 
@@ -59,8 +88,24 @@ export default function VideoTile({
         </div>
       )}
 
+      {/* Autoplay blocked overlay for mobile / strict browser policy */}
+      {isAutoplayBlocked && !isLocal && (
+        <button
+          onClick={handleUnblockAutoplay}
+          className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/75 backdrop-blur-sm text-white gap-2.5 p-4 cursor-pointer hover:bg-black/85 transition"
+        >
+          <div className="w-12 h-12 rounded-full bg-indigo-600 flex items-center justify-center shadow-lg ring-4 ring-indigo-500/30 animate-pulse">
+            <svg className="w-6 h-6 text-white ml-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <span className="text-xs font-semibold tracking-wide text-slate-200">Tap to play audio & video</span>
+        </button>
+      )}
+
       {/* Reconnecting Overlay */}
-      {isReconnecting && (
+      {isReconnecting && !isAutoplayBlocked && (
         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center gap-2 z-20">
           <div className="w-6 h-6 border-2 border-amber-400 border-t-transparent rounded-full animate-spin" />
           <span className="text-xs font-semibold text-amber-300">Reconnecting...</span>
