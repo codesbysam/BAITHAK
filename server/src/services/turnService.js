@@ -94,12 +94,14 @@ function getIceServers(userId = 'guest') {
     return iceServers;
   }
 
-  // Attach custom production Coturn if explicitly configured
+  // Attach custom production Coturn if explicitly configured (self-hosted)
   if (
     env.TURN_URL &&
     !env.TURN_URL.includes('localhost') &&
+    !env.TURN_URL.includes('openrelay.metered.ca') &&
     env.TURN_SECRET &&
-    env.TURN_SECRET !== 'my_turn_secret'
+    env.TURN_SECRET !== 'my_turn_secret' &&
+    env.TURN_SECRET !== 'baithak_turn_secret_prod'
   ) {
     const ttl = 3600;
     const timestamp = Math.floor(Date.now() / 1000) + ttl;
@@ -114,7 +116,6 @@ function getIceServers(userId = 'guest') {
       username,
       credential: password,
     });
-    return iceServers;
   }
 
   // High-performance Cloudflare Global Anycast TURN relay
