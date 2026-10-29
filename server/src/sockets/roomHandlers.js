@@ -132,7 +132,30 @@ async function admitParticipantToRoom(io, socket, roomId, participantData) {
   socket.join(`room:${roomId}`);
 
   const existingParticipants = await roomService.getParticipants(roomId);
-  const otherParticipants = existingParticipants.filter((p) => p.socketId !== socket.id);
+  const otherParticipants = [];
+
+  for (const p of existingParticipants) {
+    if (p.socketId === socket.id) continue;
+
+    // Verify if socket is still active and connected
+    const activeSocket = io.sockets.sockets.get(p.socketId);
+    const isSameUser = participantData.userId && p.userId === participantData.userId;
+
+    if (!activeSocket || !activeSocket.connected || isSameUser) {
+      // Clean up dead/duplicate session from store
+      await roomService.removeParticipant(roomId, p.socketId);
+      if (activeSocket) {
+        activeSocket.leave(`room:${roomId}`);
+        if (isSameUser) {
+          activeSocket.emit('error', { code: 'SESSION_REPLACED', message: 'Meeting opened in another tab' });
+          activeSocket.disconnect(true);
+        }
+      }
+      io.to(`room:${roomId}`).emit('room:participant-left', { id: p.socketId });
+    } else {
+      otherParticipants.push(p);
+    }
+  }
 
   const newParticipant = await roomService.addParticipant(roomId, socket.id, participantData);
   const iceServers = getIceServers(participantData.userId);
