@@ -39,6 +39,7 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/meetings', meetingRoutes);
 app.use('/api/v1/ice-servers', iceRoutes);
+app.use('/api/v1/ice', iceRoutes);
 
 // Global Error Handler
 app.use(errorHandler);
