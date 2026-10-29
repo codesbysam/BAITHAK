@@ -5,6 +5,13 @@ const MeetingModel = require('./Meeting');
 const RefreshTokenModel = require('./RefreshToken');
 const MessageModel = require('./Message');
 
+const fs = require('fs');
+const path = require('path');
+const bcrypt = require('bcrypt');
+
+const DATA_DIR = path.join(__dirname, '../../data');
+const DATA_FILE = path.join(DATA_DIR, 'db.json');
+
 // In-memory fallback stores when MongoDB is not connected
 const memoryUsers = new Map();
 const memoryMeetings = new Map();
@@ -14,6 +21,82 @@ const memoryMessages = [];
 function isDbConnected() {
   return process.env.NODE_ENV === 'test' || mongoose.connection.readyState === 1;
 }
+
+function saveToDisk() {
+  if (process.env.NODE_ENV === 'test') return;
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+    const data = {
+      users: Array.from(memoryUsers.entries()),
+      meetings: Array.from(memoryMeetings.entries()).map(([k, v]) => {
+        const { toPublicJSON, ...clean } = v;
+        return [k, clean];
+      }),
+      refreshTokens: Array.from(memoryRefreshTokens.entries()),
+      messages: memoryMessages,
+    };
+    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf-8');
+  } catch (err) {
+    console.warn('Store save warning:', err.message);
+  }
+}
+
+function loadFromDisk() {
+  if (process.env.NODE_ENV === 'test') return;
+  try {
+    if (fs.existsSync(DATA_FILE)) {
+      const raw = fs.readFileSync(DATA_FILE, 'utf-8');
+      const data = JSON.parse(raw);
+      if (Array.isArray(data.users)) {
+        data.users.forEach(([k, v]) => memoryUsers.set(k, v));
+      }
+      if (Array.isArray(data.meetings)) {
+        data.meetings.forEach(([k, v]) => {
+          memoryMeetings.set(k, {
+            ...v,
+            toPublicJSON() {
+              return {
+                roomId: this.roomId,
+                title: this.title,
+                requiresPassword: !!this.passwordHash,
+                waitingRoomEnabled: this.waitingRoomEnabled,
+                isLocked: this.isLocked,
+                status: this.status,
+                createdAt: this.createdAt,
+              };
+            },
+          });
+        });
+      }
+      if (Array.isArray(data.refreshTokens)) {
+        data.refreshTokens.forEach(([k, v]) => memoryRefreshTokens.set(k, v));
+      }
+      if (Array.isArray(data.messages)) {
+        data.messages.forEach((m) => memoryMessages.push(m));
+      }
+    }
+  } catch (err) {
+    console.warn('Store load warning:', err.message);
+  }
+
+  // Pre-seed default user if database is empty so login always works
+  if (memoryUsers.size === 0) {
+    const seedId = 'user_default_saumya';
+    const seedHash = bcrypt.hashSync('password123', 10);
+    memoryUsers.set(seedId, {
+      _id: seedId,
+      name: 'Saumya Tiwari',
+      email: 'saumyatiwari598@gmail.com',
+      passwordHash: seedHash,
+      createdAt: new Date(),
+    });
+    saveToDisk();
+  }
+}
+
+loadFromDisk();
 
 const UserStore = {
   async findOne(query) {
@@ -42,6 +125,7 @@ const UserStore = {
       createdAt: new Date(),
     };
     memoryUsers.set(id, user);
+    saveToDisk();
     return user;
   },
 };
@@ -111,6 +195,7 @@ const MeetingStore = {
       },
     };
     memoryMeetings.set(meeting.roomId, meeting);
+    saveToDisk();
     return meeting;
   },
 
@@ -120,6 +205,7 @@ const MeetingStore = {
       const existing = memoryMeetings.get(query.roomId.toLowerCase());
       if (existing) {
         Object.assign(existing, update);
+        saveToDisk();
       }
     }
     return { modifiedCount: 1 };
@@ -145,6 +231,7 @@ const RefreshTokenStore = {
       createdAt: new Date(),
     };
     memoryRefreshTokens.set(data.tokenHash, record);
+    saveToDisk();
     return record;
   },
 
@@ -152,6 +239,7 @@ const RefreshTokenStore = {
     if (isDbConnected()) return RefreshTokenModel.deleteOne(query);
     if (query.tokenHash) {
       memoryRefreshTokens.delete(query.tokenHash);
+      saveToDisk();
     }
     return { deletedCount: 1 };
   },
@@ -179,6 +267,7 @@ const MessageStore = {
       createdAt: new Date(),
     };
     memoryMessages.push(msg);
+    saveToDisk();
     return msg;
   },
 };

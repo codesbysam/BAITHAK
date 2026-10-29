@@ -7,6 +7,8 @@
 const DEFAULT_ICE_SERVERS = [
   { urls: 'stun:stun.l.google.com:19302' },
   { urls: 'stun:stun1.l.google.com:19302' },
+  { urls: 'stun:stun2.l.google.com:19302' },
+  { urls: 'stun:stun.cloudflare.com:3478' },
 ];
 
 /**
@@ -19,6 +21,14 @@ export function createPeerConnection(peerId, iceServers = DEFAULT_ICE_SERVERS, h
     iceServers: Array.isArray(iceServers) && iceServers.length > 0 ? iceServers : DEFAULT_ICE_SERVERS,
     iceTransportPolicy: 'all',
   });
+
+  // Pre-configure sendrecv transceivers so SDP negotiation always supports both audio & video
+  try {
+    pc.addTransceiver('audio', { direction: 'sendrecv' });
+    pc.addTransceiver('video', { direction: 'sendrecv' });
+  } catch (err) {
+    console.warn('Transceiver pre-allocation notice:', err?.message || err);
+  }
 
   // Track pending candidate queue for this peer to avoid InvalidStateError
   pc._pendingIceCandidates = [];
